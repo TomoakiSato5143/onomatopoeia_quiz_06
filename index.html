@@ -5,198 +5,175 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>オノマトペクイズ</title>
     <style>
-        /* =========================================
-            STUDIO風デザイン（レイアウト修正版）
-        ========================================= */
-
         body {
-            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", sans-serif;
+            font-family: "Helvetica Neue", Arial, sans-serif;
             text-align: center;
             background-color: #ffffff;
-            color: #444;
             margin: 0;
             padding: 0;
-            line-height: 1.5;
-            width: 100%;
+            overflow: hidden; /* 画面の揺れ防止 */
         }
 
         .quiz-container {
             background-color: #f7f8f9;
-            max-width: 800px;
             width: 100%;
-            /* 修正：dvh（dynamic viewport height）を使用してツールバーによる見切れを防止 */
-            min-height: 100vh;
-            min-height: 100dvh; 
+            height: 100dvh; /* 動的ビューポート */
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
             position: relative;
         }
 
+        /* 閉じるボタンを少し小さく */
+        #close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 0.8rem;
+            color: #ccc;
+            z-index: 10;
+        }
+
         .quiz-content {
-            padding: 50px 20px 10px; /* 下余白を少し詰める */
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* 中央寄せ */
+            justify-content: flex-start; /* 上詰めに変更 */
             align-items: center;
+            padding: 40px 15px 0; /* 上の余白を少し詰める */
         }
 
         h1 {
-            font-size: 1.3rem;
-            margin-bottom: 20px;
+            font-size: 1.1rem;
+            margin: 0 0 10px 0; /* タイトルの上下余白を最小に */
             color: #333;
-            letter-spacing: 0.05em;
         }
         
-        #close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 0.85rem;
-            color: #aaa;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            z-index: 10;
-        }
-        
+        /* 動画をさらに一回り小さく調整 */
         #video-container {
-            max-width: 480px; 
-            margin: 0 auto 20px;
+            max-width: 360px; 
+            width: 85%;
             aspect-ratio: 16 / 9;
             background-color: #000;
-            border-radius: 12px;
+            border-radius: 10px;
             overflow: hidden;
-            width: 100%;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         #choices-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            max-width: 500px;
+            gap: 8px; /* 隙間を狭く */
             width: 100%;
-            margin: 0 auto;
+            max-width: 450px;
         }
         
         .choice-btn {
             background-color: #fff;
             border: none;
-            border-radius: 50px;
-            padding: 12px 10px; /* 少しスリムに */
-            font-size: 1rem;
+            border-radius: 30px;
+            padding: 10px 5px; /* ボタンを低く */
+            font-size: 0.95rem;
             font-weight: bold;
             color: #555;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+
+        /* 結果と次へボタンをまとめるエリア */
+        .bottom-action-area {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-height: 80px; /* ここがガタつかないように高さを確保 */
         }
 
         #result-area {
-            margin-top: 20px;
             font-weight: bold;
-            font-size: 1.2rem;
-            min-height: 24px;
+            font-size: 1.1rem;
+            height: 24px;
         }
         
-        .correct { color: #5f6cec; }
-        .incorrect { color: #e60033; }
-
+        /* 次へボタンをコンパクトに */
         #next-btn {
             display: none;
-            margin-top: 15px;
-            padding: 12px 40px;
+            padding: 10px 30px;
             background-color: #333;
             color: #fff;
             border: none;
-            border-radius: 50px;
-            font-size: 1rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
             font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        /* --- フッター調整 --- */
+        .correct { color: #5f6cec; }
+        .incorrect { color: #e60033; }
+
+        /* フッターの装飾を大幅にカット */
         footer {
             width: 100%;
-            margin-top: 10px;
+            margin-top: auto;
         }
 
         .footer-line {
-            width: 60%;
-            max-width: 400px;
+            width: 50%;
             height: 1px;
-            background-color: #c3c7c8;
-            margin: 0 auto 10px auto;
+            background-color: #ddd;
+            margin: 0 auto;
         }
 
         .footer-text {
-            font-size: 0.6rem;
-            color: #888;
-            margin-bottom: 5px;
+            font-size: 0.55rem;
+            color: #aaa;
+            margin: 5px 0;
         }
 
         .footer-gradient {
             width: 100%;
-            height: 60px; /* 高さを100pxから縮小 */
+            height: 30px; /* 30pxまで縮小 */
             background: linear-gradient(to top, #5f6cec, #f7f8f9);
         }
 
-        /* =========================================
-            ▼ タブレット・スマホ用のレスポンシブ調整 ▼
-        ========================================= */
-        @media (max-width: 800px) {
-            .quiz-content {
-                padding-top: 60px; /* 閉じるボタンとの重なり防止 */
-            }
-
-            /* 縦幅が狭い画面向けの調整 */
-            @media (max-height: 700px) {
-                h1 { font-size: 1.1rem; margin-bottom: 15px; }
-                #video-container { margin-bottom: 15px; max-width: 400px; }
-                .footer-gradient { height: 30px; } /* グラデーションを極限まで小さく */
-            }
-        }
-
-        @media (max-width: 600px) {
-            #choices-container {
-                grid-template-columns: 1fr;
-                gap: 8px;
-            }
-            .choice-btn { padding: 10px; }
+        /* 画面の縦が特に短い場合の最終調整 */
+        @media (max-height: 600px) {
+            h1 { font-size: 1rem; }
+            #video-container { max-width: 300px; }
+            .choice-btn { padding: 8px 5px; font-size: 0.85rem; }
         }
     </style>
 </head>
 <body>
 
     <div class="quiz-container">
-        <button id="close-btn" onclick="window.close()">
-            <span style="font-size: 1.4em;">×</span> クイズを おわる
-        </button>
+        <button id="close-btn" onclick="window.close()">× おわる</button>
 
         <div class="quiz-content">
             <h1>この どうがの オノマトペは どれ？</h1>
+            
             <div id="video-container"></div>
+
             <div id="choices-container"></div>
-            <div id="result-area"></div>
-            <button id="next-btn" onclick="location.reload();">つぎの もんだいへ</button>
+
+            <div class="bottom-action-area">
+                <div id="result-area"></div>
+                <button id="next-btn" onclick="location.reload();">つぎの もんだいへ</button>
+            </div>
         </div>
 
         <footer>
             <div class="footer-line"></div>
-            <p class="footer-text">URYUYAMA JAPANESE LANGUAGE SCHOOL ONOMATOPOEIA LABORATORY</p>
+            <p class="footer-text">URYUYAMA JLS ONOMATOPOEIA LAB</p>
             <div class="footer-gradient"></div>
         </footer>
     </div>
 
     <script src="https://player.vimeo.com/api/player.js"></script>
     <script>
-        // JS部分は以前と変更なしのため、動作に影響ありません。
+        // --- データの部分は変更なし ---
         const quizData = [
             { vimeoId: 'https://vimeo.com/1148246748/5d94598b5e?fl=ml&fe=ec', answer: 'ふにゃー', options: ['ふらふら', 'ふにゃー', 'ふわり', 'ふかふか'] },
             { vimeoId: 'https://vimeo.com/1148246757/7fbc371057?fl=ml&fe=ec', answer: 'ふわり', options: ['ふかふか', 'ふわり', 'ふにゃー', 'ふっくら'] },
@@ -215,42 +192,3 @@
         ];
 
         const videoContainer = document.getElementById('video-container');
-        const choicesContainer = document.getElementById('choices-container');
-        const resultArea = document.getElementById('result-area');
-        const nextBtn = document.getElementById('next-btn');
-
-        const currentQuiz = quizData[Math.floor(Math.random() * quizData.length)];
-        const optionsVimeo = { url: currentQuiz.vimeoId, responsive: true, loop: true, autoplay: true, muted: true, controls: false };
-        const player = new Vimeo.Player('video-container', optionsVimeo);
-        player.setVolume(0);
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        const shuffledOptions = shuffle([...currentQuiz.options]);
-        shuffledOptions.forEach(text => {
-            const btn = document.createElement('button');
-            btn.className = 'choice-btn';
-            btn.textContent = text;
-            btn.onclick = () => checkAnswer(text);
-            choicesContainer.appendChild(btn);
-        });
-
-        function checkAnswer(selectedText) {
-            const allBtns = document.querySelectorAll('.choice-btn');
-            allBtns.forEach(btn => btn.disabled = true);
-            if (selectedText === currentQuiz.answer) {
-                resultArea.innerHTML = '<span class="correct">せいかい！◎</span>';
-            } else {
-                resultArea.innerHTML = '<span class="incorrect">ざんねん... せいかいは「' + currentQuiz.answer + '」でした</span>';
-            }
-            nextBtn.style.display = 'inline-block';
-        }
-    </script>
-</body>
-</html>
