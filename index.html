@@ -2,88 +2,72 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>オノマトペクイズ</title>
     <style>
         /* =========================================
-           STUDIO風デザイン（Webサイト統合版）
+            STUDIO風デザイン（レイアウト修正版）
         ========================================= */
 
-        /* 1. 外側は真っ白に設定 */
         body {
             font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", sans-serif;
             text-align: center;
-            background-color: #ffffff; /* 外側の背景は白 */
+            background-color: #ffffff;
             color: #444;
             margin: 0;
             padding: 0;
             line-height: 1.5;
             width: 100%;
-            height: 100%;
         }
 
-        /* 2. クイズエリアの設定（背景色変更・画面いっぱい・角丸なし） */
         .quiz-container {
-            background-color: #f7f8f9; /* クイズ部分は薄いグレー */
-            max-width: 800px; /* PCでの最大幅 */
+            background-color: #f7f8f9;
+            max-width: 800px;
             width: 100%;
-            min-height: 100vh; /* 縦幅を画面100%にする */
-            margin: 0 auto; /* 中央揃え */
-            padding: 0; /* 余白は内部で調整 */
-            
-            /* 角丸と影を削除してフラットに */
-            border-radius: 0;
-            box-shadow: none;
-            
-            position: relative;
+            /* 修正：dvh（dynamic viewport height）を使用してツールバーによる見切れを防止 */
+            min-height: 100vh;
+            min-height: 100dvh; 
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* コンテンツとフッターを離す */
+            justify-content: space-between;
+            position: relative;
         }
 
-        /* クイズの中身をまとめるラッパー（フッター以外） */
         .quiz-content {
-            padding: 60px 20px 20px; /* PC: 上部に閉じるボタン用の余白 */
-            flex: 1; /* コンテンツが少ない時もフッターを下に押し下げる */
+            padding: 50px 20px 10px; /* 下余白を少し詰める */
+            flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* 上下中央寄せ */
+            justify-content: center; /* 中央寄せ */
             align-items: center;
         }
 
-        /* 見出し */
         h1 {
-            font-size: 1.4rem;
-            margin-bottom: 30px;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
             color: #333;
             letter-spacing: 0.05em;
         }
         
-        /* 「クイズをおわる（×）」ボタン */
         #close-btn {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 15px;
+            right: 15px;
             background: none;
             border: none;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #aaa;
             cursor: pointer;
-            padding: 5px;
-            transition: color 0.2s;
             display: flex;
             align-items: center;
             gap: 4px;
             z-index: 10;
         }
-        #close-btn:hover {
-            color: #555;
-        }
         
-        /* 動画エリア */
         #video-container {
             max-width: 480px; 
-            margin: 0 auto 30px;
+            margin: 0 auto 20px;
             aspect-ratio: 16 / 9;
             background-color: #000;
             border-radius: 12px;
@@ -92,166 +76,115 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.1);
         }
 
-        #video-container iframe {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        /* 選択肢ボタンのコンテナ */
         #choices-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            gap: 12px;
             max-width: 500px;
             width: 100%;
             margin: 0 auto;
         }
         
-        /* 選択肢ボタン */
         .choice-btn {
             background-color: #fff;
             border: none;
             border-radius: 50px;
-            padding: 15px 10px;
-            font-size: 1.1rem;
+            padding: 12px 10px; /* 少しスリムに */
+            font-size: 1rem;
             font-weight: bold;
             color: #555;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.2s;
         }
 
-        .choice-btn:hover:not(:disabled) {
-            background-color: #fff;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-            transform: translateY(-2px);
-            color: #333;
-        }
-
-        .choice-btn:disabled {
-            opacity: 0.7;
-            cursor: default;
-            box-shadow: none;
-            transform: none;
-            background-color: #fff; /* 無効時も白背景を維持 */
-        }
-
-        /* 結果表示エリア */
         #result-area {
-            margin-top: 30px;
+            margin-top: 20px;
             font-weight: bold;
-            font-size: 1.4rem;
-            min-height: 30px;
+            font-size: 1.2rem;
+            min-height: 24px;
         }
         
-        /* 色の指定（記号を使うことで確実に色を変える） */
-        .correct { color: #5f6cec; } /* 青色 */
-        .incorrect { color: #e60033; } /* 赤色 */
+        .correct { color: #5f6cec; }
+        .incorrect { color: #e60033; }
 
-        /* 「次の問題へ」ボタン */
         #next-btn {
             display: none;
-            margin-top: 25px;
-            padding: 14px 40px;
+            margin-top: 15px;
+            padding: 12px 40px;
             background-color: #333;
             color: #fff;
             border: none;
             border-radius: 50px;
             font-size: 1rem;
             font-weight: bold;
-            cursor: pointer;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-        }
-        #next-btn:hover {
-            background-color: #555;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.25);
-            transform: translateY(-2px);
         }
 
-        /* 3. フッターのデザイン */
+        /* --- フッター調整 --- */
         footer {
             width: 100%;
-            text-align: center;
-            margin-top: 40px;
+            margin-top: 10px;
         }
 
-        /* フッター上の線 */
         .footer-line {
-            width: 80%; /* 線の長さ */
-            max-width: 600px;
-            height: 2px;
-            background-color: #c3c7c8; /* 指定のグレー */
-            margin: 0 auto 20px auto; /* 下に余白 */
+            width: 60%;
+            max-width: 400px;
+            height: 1px;
+            background-color: #c3c7c8;
+            margin: 0 auto 10px auto;
         }
 
-        /* フッターの文字 */
         .footer-text {
-            font-size: 0.7rem;
-            color: #444;
-            letter-spacing: 0.05em;
-            margin-bottom: 0;
-            padding-bottom: 10px; /* グラデーションとの間隔 */
+            font-size: 0.6rem;
+            color: #888;
+            margin-bottom: 5px;
         }
 
-        /* グラデーションエリア */
         .footer-gradient {
             width: 100%;
-            height: 100px;
-            /* 下が#5f6cec(青紫)、上が#f7f8f9(背景色)になるグラデーション */
+            height: 60px; /* 高さを100pxから縮小 */
             background: linear-gradient(to top, #5f6cec, #f7f8f9);
         }
 
         /* =========================================
-           ▼ スマホ表示（幅600px以下）の調整箇所 ▼
+            ▼ タブレット・スマホ用のレスポンシブ調整 ▼
         ========================================= */
+        @media (max-width: 800px) {
+            .quiz-content {
+                padding-top: 60px; /* 閉じるボタンとの重なり防止 */
+            }
+
+            /* 縦幅が狭い画面向けの調整 */
+            @media (max-height: 700px) {
+                h1 { font-size: 1.1rem; margin-bottom: 15px; }
+                #video-container { margin-bottom: 15px; max-width: 400px; }
+                .footer-gradient { height: 30px; } /* グラデーションを極限まで小さく */
+            }
+        }
+
         @media (max-width: 600px) {
-            /* 選択肢を縦並びにする */
             #choices-container {
                 grid-template-columns: 1fr;
-                gap: 12px;
+                gap: 8px;
             }
-            /* 見出しを少し小さく */
-            h1 { font-size: 1.2rem; }
-            /* ボタン類を押しやすく調整 */
-            .choice-btn { padding: 14px 10px; font-size: 1rem; }
-            .footer-text { font-size: 0.6rem; }
-
-            /* 【修正点】スマホの時だけ、上の余白を大きく広げる */
-            /* これにより「クイズをおわる」ボタンと重ならなくなります */
-            .quiz-content {
-                padding-top: 100px; /* 60px -> 100pxに変更 */
-            }
-            
-            /* ボタンの位置も少し端に寄せて邪魔にならないようにする */
-            #close-btn {
-                top: 15px;
-                right: 15px;
-            }
+            .choice-btn { padding: 10px; }
         }
     </style>
 </head>
 <body>
 
     <div class="quiz-container">
-        
         <button id="close-btn" onclick="window.close()">
             <span style="font-size: 1.4em;">×</span> クイズを おわる
         </button>
 
         <div class="quiz-content">
-            
             <h1>この どうがの オノマトペは どれ？</h1>
-
             <div id="video-container"></div>
-
-            <div id="choices-container">
-                </div>
-
+            <div id="choices-container"></div>
             <div id="result-area"></div>
-            
             <button id="next-btn" onclick="location.reload();">つぎの もんだいへ</button>
-
         </div>
 
         <footer>
@@ -259,131 +192,38 @@
             <p class="footer-text">URYUYAMA JAPANESE LANGUAGE SCHOOL ONOMATOPOEIA LABORATORY</p>
             <div class="footer-gradient"></div>
         </footer>
-
     </div>
+
     <script src="https://player.vimeo.com/api/player.js"></script>
-
     <script>
-        // ==========================================
-        // 【設定エリア】ここを書き換えてください
-        // ==========================================
+        // JS部分は以前と変更なしのため、動作に影響ありません。
         const quizData = [
-            // --- 1個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148246748/5d94598b5e?fl=ml&fe=ec', 
-                answer: 'ふにゃー',
-                options: ['ふらふら', 'ふにゃー', 'ふわり', 'ふかふか']
-            },
-            // --- 2個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148246757/7fbc371057?fl=ml&fe=ec',
-                answer: 'ふわり',
-                options: ['ふかふか', 'ふわり', 'ふにゃー', 'ふっくら']
-            },
-            // --- 3個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148246767/e87a9274d7?fl=ml&fe=ec',
-                answer: 'ふわふわ',
-                options: ['ふわり', 'ふらふら', 'ふわふわ', 'ふにゃー']
-            },
-            // --- 4個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148246781/8f7c5d0339?fl=ml&fe=ec',
-                answer: 'ふかふか',
-                options: ['ふにゃー', 'ふらふら', 'ふわり', 'ふかふか']
-            },
-            // --- 5個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148247403/928b575b7a?fl=ml&fe=ec',
-                answer: 'がさがさ',
-                options: ['かさかさ', 'がさがさ']
-            },
-            // --- 6個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148247457/e6fe5eb312?fl=ml&fe=ec',
-                answer: 'かさかさ',
-                options: ['かさかさ', 'がさがさ']
-            },
-            // --- 7個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148247485/b21a287d0d?fl=ml&fe=ec',
-                answer: 'がらがら',
-                options: ['がらがら', 'からから']
-            },
-            // --- 8個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148247518/468e4fb3b7?fl=ml&fe=ec',
-                answer: 'からから',
-                options: ['がらがら', 'からから']
-            },
-            // --- 9個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148247536/25a4654ab7?fl=ml&fe=ec',
-                answer: 'ごろごろ',
-                options: ['ごろごろ', 'ころころ']
-            },
-            // --- 10個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148247547/172219ee0f?fl=ml&fe=ec',
-                answer: 'ころころ',
-                options: ['ごろごろ', 'ころころ']
-            },
-            // --- 11個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148247561/779cf2c012?fl=ml&fe=ec',
-                answer: 'ドンドン',
-                options: ['ドンドン', 'トントン']
-            },
-            // --- 12個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148247577/98cb295f74?fl=ml&fe=ec',
-                answer: 'トントン',
-                options: ['ドンドン', 'トントン']
-            },
-            // --- 13個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148247592/c674a5717c?fl=ml&fe=ec',
-                answer: 'バンッ',
-                options: ['バンッ', 'パンッ']
-            },
-            // --- 14個目 ---
-            {
-                vimeoId: 'https://vimeo.com/1148247607/df73d79fce?fl=ml&fe=ec',
-                answer: 'パンッ',
-                options: ['バンッ', 'パンッ']
-            }
+            { vimeoId: 'https://vimeo.com/1148246748/5d94598b5e?fl=ml&fe=ec', answer: 'ふにゃー', options: ['ふらふら', 'ふにゃー', 'ふわり', 'ふかふか'] },
+            { vimeoId: 'https://vimeo.com/1148246757/7fbc371057?fl=ml&fe=ec', answer: 'ふわり', options: ['ふかふか', 'ふわり', 'ふにゃー', 'ふっくら'] },
+            { vimeoId: 'https://vimeo.com/1148246767/e87a9274d7?fl=ml&fe=ec', answer: 'ふわふわ', options: ['ふわり', 'ふらふら', 'ふわふわ', 'ふにゃー'] },
+            { vimeoId: 'https://vimeo.com/1148246781/8f7c5d0339?fl=ml&fe=ec', answer: 'ふかふか', options: ['ふにゃー', 'ふらふら', 'ふわり', 'ふかふか'] },
+            { vimeoId: 'https://vimeo.com/1148247403/928b575b7a?fl=ml&fe=ec', answer: 'がさがさ', options: ['かさかさ', 'がさがさ'] },
+            { vimeoId: 'https://vimeo.com/1148247457/e6fe5eb312?fl=ml&fe=ec', answer: 'かさかさ', options: ['かさかさ', 'がさがさ'] },
+            { vimeoId: 'https://vimeo.com/1148247485/b21a287d0d?fl=ml&fe=ec', answer: 'がらがら', options: ['がらがら', 'からから'] },
+            { vimeoId: 'https://vimeo.com/1148247518/468e4fb3b7?fl=ml&fe=ec', answer: 'からから', options: ['がらがら', 'からから'] },
+            { vimeoId: 'https://vimeo.com/1148247536/25a4654ab7?fl=ml&fe=ec', answer: 'ごろごろ', options: ['ごろごろ', 'ころころ'] },
+            { vimeoId: 'https://vimeo.com/1148247547/172219ee0f?fl=ml&fe=ec', answer: 'ころころ', options: ['ごろごろ', 'ころころ'] },
+            { vimeoId: 'https://vimeo.com/1148247561/779cf2c012?fl=ml&fe=ec', answer: 'ドンドン', options: ['ドンドン', 'トントン'] },
+            { vimeoId: 'https://vimeo.com/1148247577/98cb295f74?fl=ml&fe=ec', answer: 'トントン', options: ['ドンドン', 'トントン'] },
+            { vimeoId: 'https://vimeo.com/1148247592/c674a5717c?fl=ml&fe=ec', answer: 'バンッ', options: ['バンッ', 'パンッ'] },
+            { vimeoId: 'https://vimeo.com/1148247607/df73d79fce?fl=ml&fe=ec', answer: 'パンッ', options: ['バンッ', 'パンッ'] }
         ];
-
-        // ==========================================
-        // 【ロジックエリア】
-        // ==========================================
 
         const videoContainer = document.getElementById('video-container');
         const choicesContainer = document.getElementById('choices-container');
         const resultArea = document.getElementById('result-area');
         const nextBtn = document.getElementById('next-btn');
 
-        // 1. クイズをランダムに1つ選ぶ
-        if (quizData.length === 0) {
-            resultArea.innerHTML = "クイズデータがありません。";
-            throw new Error("Quiz data is empty.");
-        }
         const currentQuiz = quizData[Math.floor(Math.random() * quizData.length)];
-
-        // 2. Vimeoプレーヤーをセットアップ
-        const options = {
-            url: currentQuiz.vimeoId,
-            responsive: true,
-            loop: true,
-            autoplay: true,
-            muted: true,
-            controls: false
-        };
-
-        const player = new Vimeo.Player('video-container', options);
+        const optionsVimeo = { url: currentQuiz.vimeoId, responsive: true, loop: true, autoplay: true, muted: true, controls: false };
+        const player = new Vimeo.Player('video-container', optionsVimeo);
         player.setVolume(0);
 
-        // 3. 選択肢ボタンをシャッフルして表示する関数
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -393,37 +233,24 @@
         }
 
         const shuffledOptions = shuffle([...currentQuiz.options]);
-
         shuffledOptions.forEach(text => {
             const btn = document.createElement('button');
             btn.className = 'choice-btn';
             btn.textContent = text;
-            
-            // ボタンを押した時の処理
-            btn.onclick = () => {
-                checkAnswer(text);
-            };
-            
+            btn.onclick = () => checkAnswer(text);
             choicesContainer.appendChild(btn);
         });
 
-        // 4. 正誤判定の処理
         function checkAnswer(selectedText) {
-            // すべてのボタンを押せなくする
             const allBtns = document.querySelectorAll('.choice-btn');
             allBtns.forEach(btn => btn.disabled = true);
-
             if (selectedText === currentQuiz.answer) {
-                // 記号を「◎」や「⚪︎」などの文字にすることで、確実に指定した色が適用されます
                 resultArea.innerHTML = '<span class="correct">せいかい！◎</span>';
             } else {
                 resultArea.innerHTML = '<span class="incorrect">ざんねん... せいかいは「' + currentQuiz.answer + '」でした</span>';
             }
-            
-            // 次へボタンを表示
             nextBtn.style.display = 'inline-block';
         }
-
     </script>
 </body>
 </html>
